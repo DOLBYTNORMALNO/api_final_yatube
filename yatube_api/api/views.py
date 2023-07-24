@@ -1,7 +1,6 @@
 from rest_framework import viewsets, permissions
-from .serializers import FollowSerializer
-from posts.models import Follow
-
+from .serializers import PostSerializer, FollowSerializer
+from posts.models import Post, Follow
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -10,11 +9,18 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
         return obj.owner == request.user
 
+class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 class FollowViewSet(viewsets.ModelViewSet):
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
-    permission_classes = [permissions.IsOwnerOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
