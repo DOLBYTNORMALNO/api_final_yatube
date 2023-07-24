@@ -54,7 +54,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'yatube_api.wsgi.application'
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -93,8 +92,8 @@ STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
     ],
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
