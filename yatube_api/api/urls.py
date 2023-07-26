@@ -11,7 +11,7 @@ router.register(r'groups', GroupViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('token/', obtain_jwt_token),
-    path('token/refresh/', refresh_jwt_token),
-    path('token/verify/', verify_jwt_token),
+    path('jwt/', obtain_jwt_token),
+    path('jwt/refresh/', refresh_jwt_token),
+    path('jwt/verify/', verify_jwt_token),
 ]
