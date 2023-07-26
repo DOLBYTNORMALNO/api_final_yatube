@@ -1,16 +1,13 @@
 from rest_framework import viewsets, permissions
-from .serializers import PostSerializer, FollowSerializer, CommentSerializer
-from posts.models import Post, Follow, Comment
-
+from .serializers import PostSerializer, FollowSerializer, CommentSerializer, GroupSerializer
+from posts.models import Post, Follow, Comment, Group
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        # Используйте obj.author вместо obj.owner
         return obj.author == request.user
-
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
@@ -19,7 +16,6 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-
 
 class FollowViewSet(viewsets.ModelViewSet):
     queryset = Follow.objects.all()
@@ -36,7 +32,6 @@ class FollowViewSet(viewsets.ModelViewSet):
         else:
             raise serializers.ValidationError("You cannot follow yourself.")
 
-
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -47,3 +42,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+class GroupViewSet(viewsets.ModelViewSet):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
