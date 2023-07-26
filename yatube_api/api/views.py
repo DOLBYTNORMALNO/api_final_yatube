@@ -7,7 +7,8 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        return obj.owner == request.user
+        # Используйте obj.author вместо obj.owner
+        return obj.author == request.user
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
