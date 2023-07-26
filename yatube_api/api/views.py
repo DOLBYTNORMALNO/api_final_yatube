@@ -47,6 +47,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        serializer.is_valid(raise_exception=True)
         serializer.save(author=self.request.user, post=post)
 
 
