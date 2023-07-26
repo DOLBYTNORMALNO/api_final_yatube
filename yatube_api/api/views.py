@@ -1,6 +1,8 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, permissions
 from .serializers import PostSerializer, FollowSerializer, CommentSerializer, GroupSerializer
 from posts.models import Post, Follow, Comment, Group
+
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -9,6 +11,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
         return obj.author == request.user
 
+
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -16,6 +19,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
 
 class FollowViewSet(viewsets.ModelViewSet):
     queryset = Follow.objects.all()
@@ -32,6 +36,7 @@ class FollowViewSet(viewsets.ModelViewSet):
         else:
             raise serializers.ValidationError("You cannot follow yourself.")
 
+
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -41,7 +46,9 @@ class CommentViewSet(viewsets.ModelViewSet):
         return Comment.objects.filter(post__id=post_id)
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user, post_id=self.kwargs['post_id'])
+        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        serializer.save(author=self.request.user, post=post)
+
 
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
