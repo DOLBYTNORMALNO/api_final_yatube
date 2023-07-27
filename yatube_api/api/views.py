@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from requests import Response
+from rest_framework.exceptions import PermissionDenied
 from rest_framework import viewsets, permissions
 from .serializers import PostSerializer, FollowSerializer, CommentSerializer, GroupSerializer
 from posts.models import Post, Follow, Comment, Group
@@ -63,16 +63,12 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         if self.request.user != self.get_object().author:
-            return Response({"detail": "You do not have permission to change this comment."}, status=403)
-
-        serializer.is_valid(raise_exception=True)
+            raise PermissionDenied("You do not have permission to change this comment.")
         serializer.save()
 
     def perform_partial_update(self, serializer):
         if self.request.user != self.get_object().author:
-            return Response({"detail": "You do not have permission to change this comment."}, status=403)
-
-        serializer.is_valid(raise_exception=True)
+            raise PermissionDenied("You do not have permission to change this comment.")
         serializer.save()
 
 
