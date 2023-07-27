@@ -28,7 +28,9 @@ class FollowViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return user.follower.all()
+        if user.is_authenticated:
+            return user.follower.all()
+        return Follow.objects.none()
 
     def perform_create(self, serializer):
         if self.request.user != serializer.validated_data['following']:
