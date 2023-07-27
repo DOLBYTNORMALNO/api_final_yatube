@@ -34,6 +34,7 @@ class FollowViewSet(viewsets.ModelViewSet):
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
 
     def get_queryset(self):
         user = self.request.user
@@ -54,6 +55,7 @@ class FollowViewSet(viewsets.ModelViewSet):
         if Follow.objects.filter(user=self.request.user, following=following).exists():
             raise serializers.ValidationError("You are already following this user.")
         serializer.save(user=self.request.user)
+
 
 
 class CommentViewSet(viewsets.ModelViewSet):
