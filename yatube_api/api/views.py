@@ -60,6 +60,14 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save(author=self.request.user, post=post)
 
+    def perform_update(self, serializer):
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+    def perform_partial_update(self, serializer):
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
 
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
