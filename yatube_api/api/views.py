@@ -14,17 +14,16 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
 
 class IsAuthenticatedOrReadOnly(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
+    def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
-
         return request.user.is_authenticated
 
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -42,10 +41,9 @@ class FollowViewSet(viewsets.ModelViewSet):
         return Follow.objects.none()
 
     def perform_create(self, serializer):
-        if self.request.user != serializer.validated_data['following']:
-            serializer.save(user=self.request.user)
-        else:
+        if self.request.user == serializer.validated_data['following']:
             raise serializers.ValidationError("You cannot follow yourself.")
+        serializer.save(user=self.request.user)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -70,6 +68,11 @@ class CommentViewSet(viewsets.ModelViewSet):
         if self.request.user != self.get_object().author:
             raise PermissionDenied("You do not have permission to change this comment.")
         serializer.save()
+
+    def perform_destroy(self, instance):
+        if self.request.user != instance.author:
+            raise PermissionDenied("You do not have permission to delete this comment.")
+        instance.delete()
 
 
 class GroupViewSet(viewsets.ModelViewSet):
