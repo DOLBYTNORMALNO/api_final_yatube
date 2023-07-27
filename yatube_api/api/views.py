@@ -1,9 +1,14 @@
-
 from django.shortcuts import get_object_or_404
+from rest_framework import permissions, serializers, viewsets
 from rest_framework.exceptions import PermissionDenied
-from rest_framework import viewsets, permissions, serializers
-from .serializers import PostSerializer, FollowSerializer, CommentSerializer, GroupSerializer
-from posts.models import Post, Follow, Comment, Group, User
+
+from .serializers import (
+    CommentSerializer,
+    FollowSerializer,
+    GroupSerializer,
+    PostSerializer,
+)
+from posts.models import Comment, Follow, Group, Post, User
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
@@ -38,7 +43,7 @@ class FollowViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        search = self.request.query_params.get('search', None)
+        search = self.request.query_params.get("search", None)
         if user.is_authenticated:
             queryset = user.follower.all()
             if search is not None:
@@ -47,15 +52,18 @@ class FollowViewSet(viewsets.ModelViewSet):
         return Follow.objects.none()
 
     def perform_create(self, serializer):
-        following = serializer.validated_data['following']
+        following = serializer.validated_data["following"]
         if self.request.user == following:
             raise serializers.ValidationError("You cannot follow yourself.")
         if not User.objects.filter(username=following).exists():
             raise serializers.ValidationError("User does not exist.")
-        if Follow.objects.filter(user=self.request.user, following=following).exists():
-            raise serializers.ValidationError("You are already following this user.")
+        if Follow.objects.filter(
+            user=self.request.user, following=following
+        ).exists():
+            raise serializers.ValidationError(
+                "You are already following this user."
+            )
         serializer.save(user=self.request.user)
-
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -64,27 +72,33 @@ class CommentViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        post_id = self.kwargs['post_id']
+        post_id = self.kwargs["post_id"]
         return Comment.objects.filter(post__id=post_id)
 
     def perform_create(self, serializer):
-        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        post = get_object_or_404(Post, pk=self.kwargs["post_id"])
         serializer.is_valid(raise_exception=True)
         serializer.save(author=self.request.user, post=post)
 
     def perform_update(self, serializer):
         if self.request.user != self.get_object().author:
-            raise PermissionDenied("You do not have permission to change this comment.")
+            raise PermissionDenied(
+                "You do not have permission to change this comment."
+            )
         serializer.save()
 
     def perform_partial_update(self, serializer):
         if self.request.user != self.get_object().author:
-            raise PermissionDenied("You do not have permission to change this comment.")
+            raise PermissionDenied(
+                "You do not have permission to change this comment."
+            )
         serializer.save()
 
     def perform_destroy(self, instance):
         if self.request.user != instance.author:
-            raise PermissionDenied("You do not have permission to delete this comment.")
+            raise PermissionDenied(
+                "You do not have permission to delete this comment."
+            )
         instance.delete()
 
 
@@ -93,4 +107,3 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = GroupSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     pagination_class = None
-
