@@ -1,8 +1,9 @@
+
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import PermissionDenied
 from rest_framework import viewsets, permissions
 from .serializers import PostSerializer, FollowSerializer, CommentSerializer, GroupSerializer
-from posts.models import Post, Follow, Comment, Group
+from posts.models import Post, Follow, Comment, Group, User
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
@@ -36,13 +37,19 @@ class FollowViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        search = self.request.query_params.get('search', None)
         if user.is_authenticated:
-            return user.follower.all()
+            queryset = user.follower.all()
+            if search is not None:
+                queryset = queryset.filter(following__username=search)
+            return queryset
         return Follow.objects.none()
 
     def perform_create(self, serializer):
         if self.request.user == serializer.validated_data['following']:
             raise serializers.ValidationError("You cannot follow yourself.")
+        if not User.objects.filter(username=serializer.validated_data['following']).exists():
+            raise serializers.ValidationError("User does not exist.")
         serializer.save(user=self.request.user)
 
 
